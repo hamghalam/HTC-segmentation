@@ -1,6 +1,8 @@
 # HTC-segmentation
 Generate high-tissue contrast images for the segmentation task
 
+![](https://github.com/hamghalam/HTC-segmentation/blob/master/htc.PNG)
+
 # Prerequisites
 
 <p> Linux or OSX </p>
