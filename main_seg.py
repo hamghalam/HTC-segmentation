@@ -107,8 +107,8 @@ class CycleGAN_seg:
         self.cyc_A/ self.cyc_B -> Images generated after feeding
         self.fake_A/self.fake_B to corresponding generator.
         This is use to calculate cyclic loss
-....self.manual_seg -> manual labels in Ground truth
-....self.auto_seg   -> predicted labels by the segmentation block
+        self.manual_seg -> manual labels in Ground truth
+        self.auto_seg   -> predicted labels by the segmentation block
         """
 
         self.input_a = tf.placeholder(tf.float32, [1, model2.IMG_WIDTH,
@@ -187,7 +187,7 @@ class CycleGAN_seg:
 
         d_loss_A/d_loss_B -> loss for discriminator A/B
         g_loss_A/g_loss_B -> loss for generator A/B
-........seg_cost          -> Segmentation loss in target domain 
+        seg_cost          -> Segmentation loss in target domain 
         *_trainer -> Various trainer for above loss functions
         *_summ -> Summary variables for above loss functions
         """
