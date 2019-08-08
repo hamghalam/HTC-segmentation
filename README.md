@@ -3,9 +3,9 @@ Generate high-tissue contrast for segmentation
 
 # Prerequisites
 
-Linux or OSX
-NVIDIA GPU + CUDA CuDNN 
-TensorFlow
+<p> Linux or OSX </p>
+<p> NVIDIA GPU + CUDA CuDNN  </p> 
+<p> TensorFlow  </p>
 
 # Prepare dataset
 
