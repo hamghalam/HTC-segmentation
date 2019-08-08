@@ -28,7 +28,7 @@ slim = tf.contrib.slim
 just_seg =0
 
 infant=0
-####################################			CycleGAN + segmentation
+####################################			CycleGAN + Segmentation #############################
 
 def dice(im1, im2,tid):   					  # Compute Dice score
     im1=im1==tid
@@ -84,6 +84,8 @@ class CycleGAN_seg:
         self.cyc_A/ self.cyc_B -> Images generated after feeding
         self.fake_A/self.fake_B to corresponding generator.
         This is use to calculate cyclic loss
+	self.manual_seg -> manual labels in Ground truth
+	self.auto_seg   -> predicted labels by the segmentation block
         """
         self.input_a = tf.placeholder(
             tf.float32, [
@@ -163,8 +165,8 @@ class CycleGAN_seg:
             'fake_pool_a_mask': self.fake_pool_A_mask,
             'fake_pool_b_mask': self.fake_pool_B_mask,
             'transition_rate': self.transition_rate,
-            'donorm': self.donorm,
-			      'seg_map':self.manual_seg                        #######################################################################
+            'donorm' : self.donorm,
+            'seg_map':self.manual_seg                        
         }
 
         outputs = model2.get_outputs(
@@ -414,173 +416,6 @@ class CycleGAN_seg:
                 
                 
                 
-                if (infant ==1):
-                  labels=np.copy(inputs['images_c'])
-                  pred_seg_t = np.copy(pred_seg)
-                  th1 = (80/127.5)-1
-                  th2 = (200/127.5)-1
-
-                  pred_seg_t[(pred_seg<th1)]   =    -.92156863 # 10
-
-                  pred_seg_t[np.logical_and((pred_seg<th2) , (pred_seg>th1))] = 0.17647064 #150
-
-                  pred_seg_t[(pred_seg > th2)] =  0.96078444  # 250
-
-                  
-                  pred_seg_t[labels < -0.92156863 ]= -1.0
-                  
-                  pred_seg = np.copy(pred_seg_t)
-                
-                  WM = np.where(labels == 0.96078444)
-                  GM = np.where(labels == 0.17647064)
-                  CSF= np.where(labels ==-0.92156863)
-                  
-                  ######################for ASD
-                  WM_B      = np.where(labels == 0.96078444, 1, 0)    # for White Matter
-                  GM_B      = np.where(labels == 0.17647064, 1, 0)    # for Gray Matter
-                  CSF_B     = np.where(labels == -0.92156863, 1, 0)   # for CSF
-                  
-                  WM_B_P    = np.where(pred_seg == 0.96078444, 1, 0)    # for White Matter
-                  GM_B_P    = np.where(pred_seg == 0.17647064, 1, 0)    # for Gray Matter
-                  CSF_B_P   = np.where(pred_seg == -0.92156863, 1, 0)   # for CSF
-                  
-                                   
-                 # labels[WM]    = 3
-                  #labels[GM]    = 2
-                  #labels[CSF]   = 1
-                  
-                  ######################
-               
-                  #print(labels[WM])
-                  #print(labels[GM])
-                  #print(labels[CSF])
-                  #print(inputs['images_c'])
-                  
-                  dsc_BG   = dice(pred_seg , labels, -1.0)             # BG
-                  dsc_CSF  = dice(pred_seg , labels, -0.92156863)   # CSF
-                  dsc_GM    = dice(pred_seg , labels, 0.17647064)    # GM
-                  dsc_WM    = dice(pred_seg , labels, 0.96078444)    # WM
-                  
-                  WM_B_R    =  WM_B.reshape(1,WM_B.shape[1],WM_B.shape[2])
-                  WM_B_P_R  =  WM_B_P.reshape(1,WM_B_P.shape[1],WM_B_P.shape[2])
-
-                
-                  GM_B_R    =  GM_B.reshape(1,GM_B.shape[1],GM_B.shape[2])
-                  GM_B_P_R  =  GM_B_P.reshape(1,GM_B_P.shape[1],GM_B_P.shape[2])
-                  
-                  CSF_B_R    =  CSF_B.reshape(1,CSF_B.shape[1],CSF_B.shape[2])
-                  CSF_B_P_R  =  CSF_B_P.reshape(1,CSF_B_P.shape[1],CSF_B_P.shape[2])                  
-                  
-                  
-                  
-                  surface_distance_WM = metrics.compute_surface_distances(WM_B_R, WM_B_P_R, spacing_mm=(1, 1, 1))
-                  
-                  surface_distance_GM = metrics.compute_surface_distances(GM_B_R, GM_B_P_R, spacing_mm=(1, 1, 1))
-                  
-                  surface_distance_CSF = metrics.compute_surface_distances(CSF_B_R, CSF_B_P_R, spacing_mm=(1, 1, 1)) 
-                  
-                  
-                  SD_WM = np.array (metrics.compute_average_surface_distance(surface_distance_WM ))
-                  #print(SD_WM)
-                  SD_WM = SD_WM.mean()
-                  SD_GM = np.array (metrics.compute_average_surface_distance( surface_distance_GM ))
-                  SD_GM =SD_GM.mean()
-                  SD_CSF = np.array ( metrics.compute_average_surface_distance(surface_distance_CSF))
-                  SD_CSF = SD_CSF.mean()
-                  
-                  
-                  HD95_WM  =  metrics.compute_robust_hausdorff(surface_distance_WM, 95)
-                  HD95_GM  =  metrics.compute_robust_hausdorff(surface_distance_GM, 95)
-                  HD95_CSF  =  metrics.compute_robust_hausdorff(surface_distance_CSF, 95)
-                  
-                  #print(HD95_WM)
-                  #print(HD95_GM)
-                  #print(HD95_CSF)
-                  
-                  #print(metrics.compute_average_surface_distance(surface_distances))
-                  
-                  #################################
-                  total_asd_WM.append(SD_WM)
-                  total_asd_GM.append(SD_GM)
-                  total_asd_CSF.append(SD_CSF)
-                  
-                  total_HD95_WM.append(HD95_WM)
-                  total_HD95_GM.append(HD95_GM)
-                  total_HD95_CSF.append(HD95_CSF)
-                  
-                  
-                  #################################
-                  
-                  total_dsc_BG.append(dsc_BG)
-                  total_dsc_CSF.append(dsc_CSF)
-                  total_dsc_GM.append(dsc_GM)
-                  total_dsc_WM.append(dsc_WM)
-                  print(dsc_WM)
-                  
-                  
-                  
-                 # print (dsc_BG,dsc_CSF,dsc_GM,dsc_WM) 
-                  
-                  #dsc = np.mean([dsc_1, dsc_2, dsc_3])  # ignore Backgroun
-                  
-                  mse_WM = np.square(np.subtract(labels[WM],pred_seg[WM])).mean()
-                  total_mse_WM.append(mse_WM)
-                  
-                  mse_GM = np.square(np.subtract(labels[GM],pred_seg[GM])).mean()
-                  total_mse_GM.append(mse_GM)
-                  
-                  mse_CSF = np.square(np.subtract(labels[CSF],pred_seg[CSF])).mean()
-                  total_mse_CSF.append(mse_CSF)
-                  image_name = 'salam_'+str(i)+'.png'
-                  pred_seg_t = np.squeeze(pred_seg_t)
-                  pred_seg_t = pred_seg_t.astype(np.uint8)
-                  
-                  
-                  R=np.copy(pred_seg_t)
-                  G=np.copy(pred_seg_t)
-                  B=np.copy(pred_seg_t)
-
-                  R[pred_seg_t==0] =0
-                  G[pred_seg_t==0] =0
-                  B[pred_seg_t==0] =0
-
-                  R[pred_seg_t==10] =63
-                  G[pred_seg_t==10] =72
-                  B[pred_seg_t==10] =204
-
-                  R[pred_seg_t==150] =150
-                  G[pred_seg_t==150] =150
-                  B[pred_seg_t==150] =150
-
-                  R[pred_seg_t==250] =237
-                  G[pred_seg_t==250] =28
-                  B[pred_seg_t==250] =36
-                  stacked_img = np.stack((R,G,B), axis=-1)
-                  #print((pred_seg_t[1,1]))
-                  imsave(os.path.join(self._images_dir, image_name),(stacked_img) )
-                else:
-                  labels=np.copy(inputs['images_c'])
-                  pred_seg_t = np.copy(pred_seg)
-                  th = 0
-                  pred_seg_t[(pred_seg<th)]  = -1.0
-                  pred_seg_t[(pred_seg>th)]  = 1.0
-                  
-                  #print('salam',np.max(pred_seg_t))
-                  
-                  dsc_lesion_f   = dice(pred_seg_t , labels, 1.0)             
-                  print("foregound =",dsc_lesion_f)
-                
-                  if (dsc_lesion_f>0.6):
-                    total_dsc_lesion.append(dsc_lesion_f)
-                
-                  dsc_lesion   = dice(pred_seg_t , labels, -1.0)             
-                  print("background =",dsc_lesion)
-                  
-                  #pred_seg[(pred_seg<th)]  = -1.0
-                  #pred_seg[(pred_seg>th)]  = 1.0          
-                  
-                mse = np.square(np.subtract(inputs['images_c'],pred_seg)).mean()
-                total_mse.append(mse)
                 
                 
                                                                              
