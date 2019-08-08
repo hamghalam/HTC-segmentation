@@ -3,6 +3,8 @@ Generate high-tissue contrast images for the segmentation task
 
 ![](https://github.com/hamghalam/HTC-segmentation/blob/master/htc.PNG)
 
+Synthetic high-contrast images
+
 # Prerequisites
 
 <p> Linux or OSX </p>
