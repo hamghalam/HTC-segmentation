@@ -1,5 +1,5 @@
 # HTC-segmentation
-Generate high-tissue contrast for segmentation
+Generate high-tissue contrast images for the segmentation task
 
 # Prerequisites
 
