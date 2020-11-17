@@ -1,7 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+
+# we should condsider that the PATH of python in linux changed to /usr/bin/python3
+
 # -*- coding: utf-8 -*-
 
-"""Code for training Image Synthesis + Segmentation"""
+"""Code for training Image Synthesis + Segmentation""".
+
+#libraries that are used in this script
 
 import surface_distance
 import json
@@ -14,6 +19,7 @@ import cyclegan_datasets
 import data_loader2
 import losses
 import model2
+import sys
 
 from scipy.misc import imsave
 from skimage.measure import compare_psnr, compare_ssim, compare_mse
@@ -861,7 +867,8 @@ def main():
 
     args = parse_args()
     if args is None:
-        exit()
+        sys.exit() #this for clean exit and memory 
+        #When the system and python shuts down; it means less memory is being used after the program is run
     mymodel = args.mymodel
     to_train = args.to_train
     log_dir = args.log_dir
@@ -917,5 +924,4 @@ def main():
         cyclegan_model_seg.test()
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__':main()
